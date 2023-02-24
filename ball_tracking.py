@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 greenLower = (50, 86, 6)
 greenUpper = (90, 255, 255)
 
-vid = cv2.VideoCapture(1)
+vid = cv2.VideoCapture(0)
 #looping
 while True:
 	# grab the current frame
@@ -23,8 +23,7 @@ while True:
 
 	# construct a mask for the color green
 	mask = cv2.inRange(hsv, greenLower, greenUpper)
-
-
+                                                                                                                                                                                                                                                                                                                                                                                                                    
 	# find contours in the mask and initialize the current
 	# (x, y) center of the ball
 	cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
