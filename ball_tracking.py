@@ -4,17 +4,17 @@ import cv2
 import imutils
 import matplotlib.pyplot as plt
 import time,os
-import serial
-import sys
+# import serial
+# import sys
 from datetime import datetime
 from time import strftime
-from time import sleep
+# from time import sleep
 
-ser=serial.Serial()
-ser.baudrate =115200
-ser.port='COM5'
-ser.open()
-test_packets=[]
+# ser=serial.Serial()
+# ser.baudrate =115200
+# ser.port='COM4'
+# ser.open()
+# test_packets=[]
 
 # define the lower and upper boundaries of the "green"
 # ball in the HSV color space, then initialize the
@@ -28,7 +28,7 @@ arrowcount=0
 a=0
 b=0
 check=0
-vid = cv2.VideoCapture(0)
+vid = cv2.VideoCapture(1,cv2.CAP_DSHOW)
 #looping
 
 while True:
@@ -74,21 +74,33 @@ while True:
 		if len(centers) % 20 == 0 and len(centers) >19 and arrowcount==len(centers):
 			a=centers[arrowcount-20]
 			b=centers[arrowcount-1]
-			print(a[0],a[1])
+			print(b[0],b[1])
+			xcor=int(b[0])
+			ycor=int(b[1])
 			arrowcount=0
 			centers=[]
 			check=1
 			min=datetime.now().strftime("%M")
+			min=int(min)
 			sec=datetime.now().strftime("%S")
+			sec=int(sec)
 			microsec=datetime.now().strftime("%f")
 			microsec1=int(str(microsec)[:2])
 			microsec2=int(str(microsec)[2:4])
 			microsec3=int(str(microsec)[4:])
 			print(min)
 			print(sec)
-			print(microsec)
-			#test_packet=bytearray([50,52,a[0],a[1],min,sec,microsec1,microsec2,microsec3,51])
-		
+			print(microsec1,microsec2,microsec3)
+			test_packet=bytearray([2,4,xcor,ycor,min,sec,microsec1,microsec2,microsec3,3])
+			print([2,4,xcor,ycor,min,sec,microsec1,microsec2,microsec3,3])
+			print(test_packet)
+			# ser.write(test_packet)
+			# sleep(1)
+			# while (ser.in_waiting > 0):
+			# 	print(ser.read_until().decode("utf-8"), end = '') 
+			# print("")
+
+
 
 	cv2.imshow("Frame", frame)
 	cv2.imshow("mask",mask)
