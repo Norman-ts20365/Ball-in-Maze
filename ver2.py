@@ -24,6 +24,7 @@ import multiprocessing as mp
 test_packet=[]
 greenLower = (50, 86, 6)
 greenUpper = (90, 255, 255)
+count=0
 
 def serial_IO(test_packet):
 	serialout=bytearray(test_packet)
@@ -67,22 +68,23 @@ def ball_track():
 			microsec1=int(str(microsec)[:2])
 			microsec2=int(str(microsec)[2:4])
 			microsec3=int(str(microsec)[4:])
-			global test_packet,starter
+			global test_packet
 			test_packet=([2,4,xcor,ycor,min,sec,microsec1,microsec2,microsec3,3])
 			return test_packet
 
 		
-		elif cv2.contourArea(c) < 25 and count<100:
+		elif cv2.contourArea(c) < 25 :
 			center="ball disappeared"
-			count=count+1
+			test_packet=[]		
+			return test_packet
 		
-		elif count==100:
-			print("ball droped")
-
+		
+def ball_failure():
+	print("ball droped")
 	
 if __name__ == '__main__':
 	vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-
+	count2=0
 	while True:
 		ret,frame=vid.read()
 		frame = imutils.resize(frame, width=255)
@@ -99,8 +101,16 @@ if __name__ == '__main__':
 		cv2.imshow("Frame", frame)
 		cv2.imshow("mask",mask)
 		cv2.imshow("hsv",hsv)
+		
+		if len(test_packet)>9:
+			count2=0
+			serial_IO(test_packet)
+		if len(test_packet)<9:
+			count2 += 1
 
-		serial_IO(test_packet)
+		if count2 > 199:
+			ball_failure()
+			break
 
 		key = cv2.waitKey(1) & 0xFF
 		 		# if the 'q' key is pressed, stop the loop
