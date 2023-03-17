@@ -86,6 +86,7 @@ if __name__ == '__main__':
 	vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
 	count2=0
 	while True:
+		test_packet=[]
 		ret,frame=vid.read()
 		frame = imutils.resize(frame, width=255)
 		blurred = cv2.GaussianBlur(frame, (5, 5), 0)
@@ -105,6 +106,7 @@ if __name__ == '__main__':
 		if len(test_packet)>9:
 			count2=0
 			serial_IO(test_packet)
+
 		if len(test_packet)<9:
 			count2 += 1
 
