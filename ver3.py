@@ -24,8 +24,8 @@ import multiprocessing as mp
 test_packet=[]
 YellowLower=(100,50,50)
 YellowUpper=(130,255,255) 
-greenLower = (50, 43, 46)
-greenUpper = (77, 255, 255)
+greenLower = (50, 86, 46)
+greenUpper = (90, 255, 255)
 count=0
 
 def board_detection():
@@ -79,15 +79,15 @@ def ball_track():
 
 	if len(cnts) > 0:
 		c = max(cnts, key=cv2.contourArea)
-		if cv2.contourArea(c) > 75 and count<100:
+		if cv2.contourArea(c) > 5 and count<100:
 			count=0
 			x,y,w,h =cv2.boundingRect(c)
-			cv2.rectangle(frame,(x,y),(x+w,y+h),(255,255,0),2)
-			center=(int(x+w/2),int(y+h/2))
-			xcor=int(x+w/2)
-			ycor=int(y+h/2)
+			cv2.rectangle(result,(x,y),(x+w,y+h),(255,255,0),2)
+			center=(int((x+w/2)/3),int((y+h/2)/3))
+			xcor=int((x+w/2)/3)
+			ycor=int((y+h/2)/3)
 			print(center)
-			cv2.circle(frame, center, 5, (0, 0, 255), -1)
+			cv2.circle(result, center, 5, (0, 0, 255), -1)
 			centers.append(center)
 			arrowcount=arrowcount+1
 			min=datetime.now().strftime("%M")
@@ -103,7 +103,7 @@ def ball_track():
 			return test_packet
 
 		
-		elif cv2.contourArea(c) < 75 :
+		elif cv2.contourArea(c) < 5 :
 			center="ball disappeared"
 			test_packet=[]		
 			return test_packet
@@ -120,27 +120,28 @@ if __name__ == '__main__':
 		test_packet=[]
 		ret,frame=vid.read()
 
-		frame = imutils.resize(frame, width=255)
+		frame =  cv2.resize(frame, (765, 765))
+		cv2.imshow("Frame", frame)
 		blurred = cv2.GaussianBlur(frame, (5, 5), 0)
 		hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
 
 
 		maskboard=cv2.inRange(hsv,YellowLower,YellowUpper)
-		mask = cv2.inRange(hsv, greenLower, greenUpper)
+		
 
 		kernel = np.ones((5,5),np.uint8)
 		
 		maskboard = cv2.morphologyEx(maskboard.copy(), cv2.MORPH_OPEN, kernel)
 		maskboard2 =cv2.dilate(maskboard,kernel,iterations = 1)
 
-		cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+		# cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 		cnts2,hierarchy = cv2.findContours(maskboard2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
 		
 		new_contours=[]
 		for contour in cnts2:
 			approx=cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
 			area=cv2.contourArea(contour)
-			if area >=100 :
+			if area >=50 :
 				new_contours.append(contour)
 
 		new_contours = sorted(new_contours, key=lambda x: cv2.contourArea(x), reverse=True)
@@ -157,40 +158,26 @@ if __name__ == '__main__':
 			if sorted_contours[2][0] < sorted_contours[3][0]:
 				sorted_contours[2], sorted_contours[3] = sorted_contours[3], sorted_contours[2]
 			src_pts = np.array(sorted_contours, np.float32)
-			dst_pts = np.array([[0, 0], [255, 0], [255, 255], [0, 255]], np.float32)
+			dst_pts = np.array([[0, 0], [765, 0], [765, 765], [0, 765]], np.float32)
 			M = cv2.getPerspectiveTransform(src_pts, dst_pts)
 			# contour = new_contours[i]
 			# rect = cv2.minAreaRect(contour)
 			# box = cv2.boxPoints(rect)
 			# box = np.int0(box)
 			# cv2.drawContours(frame, [box], 0, (255, 0, 255), 2)
-			result = cv2.warpPerspective(frame, M, (255,255))
+			result = cv2.warpPerspective(frame, M, (765,765))
+			result2 = cv2.resize(result,(765,725))
+			blurred2 = cv2.GaussianBlur(result, (5, 5), 0)
+			hsv2= cv2.cvtColor(result, cv2.COLOR_BGR2HSV)
+			mask2 = cv2.inRange(hsv2, greenLower, greenUpper)
+			cnts, hierarchy = cv2.findContours(mask2.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+			ball_track()
 			cv2.imshow('Image ', result)
-
-
-		# for contour in cnts2:
-		# 	approx=cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
-		# 	if len(approx) == 4:
-		# 		rect = np.float32(approx).reshape(4, 2)
-		# 		dst = np.array([[0, 0], [255, 0], [255, 255], [0, 255]], np.float32)
-		# 		M = cv2.getPerspectiveTransform(rect, dst)
-		# 		warped = cv2.warpPerspective(frame.copy(), M, (255, 255))
-		# 		result = warped[0:255, 0:255]
-		# 		cv2.imshow("board",result)
-				
-   
-		
-		print(cnts2)
-		# board_detection()
-		ball_track()
-		# p1=mp.Process(target=serial_IO,args=(test_packet))
-		# p1.start()
-		# p1.join()
-		cv2.imshow("Frame", frame)
-		cv2.imshow("mask",mask)
-		cv2.imshow("mask2",maskboard2)
-		cv2.imshow("hsv",hsv)
-		
+			cv2.imshow("mask",mask2)
+			cv2.imshow("mask2",maskboard2)
+			cv2.imshow("hsv",hsv)
+		cv2.imwrite("larger.png",result)
+			
 		
 		if len(test_packet)>9:
 			count2=0
@@ -208,3 +195,4 @@ if __name__ == '__main__':
 		if key == ord("q"):
 			break
 	cv2.destroyAllWindows()
+
