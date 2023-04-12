@@ -1,11 +1,3 @@
-#!/usr/bin/env python
-'''
-PSO Training Implementation for Fuzzy Logic Motion Controller
-Oscar Dilley, April 2023
-Univeristy of Bristol
-Electrical and Electronic Engineering Year 3
-'''
-
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -256,6 +248,28 @@ def plot(x, y, t):
             fig.tight_layout()
             plt.pause(0.0005)
 
+
+def user_input(user):
+    if user == 'S':
+        # print("Issuing Start")
+        queue.put(start)
+    # elif user == 'E':
+    #     print("Exiting")
+    #     break
+    elif user == 'w':
+        print("Jog y+")
+        # queue.put(jog_Yplus)
+    elif user == 's':
+        # print("Jog y-")
+        queue.put(jog_Yminus)
+    elif user == 'd':
+        # print("Jog x+")
+        queue.put(jog_Xplus)
+    elif user == 'a':
+        # print("Jog x-")
+        queue.put(jog_Xminus)
+        
+
 if __name__ == "__main__":
     path_finding()
     print("Welcome to the training routine")
@@ -306,4 +320,3 @@ if __name__ == "__main__":
     cv2.waitKey(0)
     cv2.destroyAllWindows()
     sys.exit()
-
