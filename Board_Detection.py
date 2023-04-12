@@ -60,5 +60,8 @@ def board_detection():
         detected_board = flatten_board(cnts2,frame)
         counter += 1
 
-        if counter>20:
+        if flag_count == True:
+            if counter>20:
+                return detected_board
+        elif flag_count == False:
             return detected_board
