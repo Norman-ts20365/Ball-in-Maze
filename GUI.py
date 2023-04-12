@@ -6,12 +6,16 @@ ctypes.windll.shcore.SetProcessDpiAwareness(0) # Ensure screen size is accurate
 from subprocess import call
 import time
 from datetime import timedelta
-from longest_line_detection import main
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 import imutils
+
+from Route_Detection import route_detection_main
+from Maze_Driver import user_command
+
+
 
 bg_colour = "#000000"
 ag_colour = "#122222"
@@ -81,25 +85,28 @@ def animation_plot(x_cor, y_cor):
         # Display the animation
         # plt.show()
 
-coordinates = main()
+coordinates = route_detection_main()
 
 def load_frame1():
     frame1.grid_propagate(0)  # so that parent frame stays the same size and not following the things inside
     frame1.tkraise()
 
-    #Insert as background image
-    img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\bnw.png')
-    im = Image.fromarray(img)
-    im=im.resize((ws, hs))
-    imgtk = ImageTk.PhotoImage(image=im)
-    logo_widget = tk.Label(frame1, image=imgtk, bg=bg_colour)
-    logo_widget.image = imgtk
-    logo_widget.pack()
+    # #Insert as background image
+    # img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\bnw.png')
+    # im = Image.fromarray(img)
+    # im=im.resize((ws, hs))
+    # imgtk = ImageTk.PhotoImage(image=im)
+    # logo_widget = tk.Label(frame1, image=imgtk, bg=bg_colour)
+    # logo_widget.image = imgtk
+    # logo_widget.pack()
 
     frame1.columnconfigure(0,weight=1)  # weight = 0 means remain, 1 onwards means expand following the frame
-    frame1.rowconfigure(0,weight=1)
-    frame1.rowconfigure(1,weight=1)
-    frame1.rowconfigure(2,weight=1)
+    # frame1.rowconfigure(0,weight=1)
+    # frame1.rowconfigure(1,weight=1)
+    # frame1.rowconfigure(2,weight=1)
+    frame1.columnconfigure(1,weight=1)  # weight = 0 means remain, 1 onwards means expand following the frame
+    frame1.columnconfigure(2,weight=1)  # weight = 0 means remain, 1 onwards means expand following the frame
+    frame1.columnconfigure(3,weight=1)  # weight = 0 means remain, 1 onwards means expand following the frame
 
     tk.Label(
             frame1, 
@@ -107,19 +114,59 @@ def load_frame1():
             bg=bg_colour,
             fg="white",
             font=("TkMenuFont", 45)
-            ).grid(row=0, column=0, pady=165)
+            ).grid(row=0, column=0, rowspan=1, columnspan=4, pady=165)
 
-    tk.Label(
-            frame1, 
-            # text="Place any maze onto the solver, place the ball at the starting point and let us do the rest.",
-            text=" ",
-            bg=bg_colour,
-            fg="white",
-            font=("TkMenuFont", 14)
-            ).grid(row=2, column=0, sticky=tk.N)
     tk.Button(
             frame1,
-            text="START",
+            text="X+",
+            font=("TkHeadingFont", 30),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[user_command('d')] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            ).grid(row=1, column=0,sticky=tk.N) # should be able to adjust according to screen size
+    
+    tk.Button(
+            frame1,
+            text="X-",
+            font=("TkHeadingFont", 30),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[user_command('a')] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            ).grid(row=1, column=1,sticky=tk.N) # should be able to adjust according to screen size
+    
+    tk.Button(
+            frame1,
+            text="Y+",
+            font=("TkHeadingFont", 30),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[user_command('w')] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            ).grid(row=1, column=2,sticky=tk.N) # should be able to adjust according to screen size
+    
+    tk.Button(
+            frame1,
+            text="Y-",
+            font=("TkHeadingFont", 30),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[user_command('s')] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            ).grid(row=1, column=3,sticky=tk.N) # should be able to adjust according to screen size
+
+    tk.Button(
+            frame1,
+            text="NEXT",
             font=("TkHeadingFont", 30),
             bg="#28393a",
             fg="white",
@@ -127,7 +174,16 @@ def load_frame1():
             activebackground="#badee2",
             activeforeground="black",
             command=lambda:[load_frame2()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
-            ).grid(row=1, column=0,sticky=tk.N) # should be able to adjust according to screen size
+            ).grid(row=2, column=0,rowspan=1, columnspan=4, pady=100, sticky=tk.S) # should be able to adjust according to screen size
+
+    # tk.Label(
+    #         frame1, 
+    #         # text="Place any maze onto the solver, place the ball at the starting point and let us do the rest.",
+    #         text=" ",
+    #         bg=bg_colour,
+    #         fg="white",
+    #         font=("TkMenuFont", 14)
+    #         ).grid(row=2, column=0, sticky=tk.N)
 
 def load_frame2():
     # clear_widgets(frame1)
@@ -278,7 +334,7 @@ root.geometry('{}x{}'.format(ws, hs))
 
 print(ws,hs)
 # create a frame widgets
-frame1 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
+frame1 = tk.Frame(root, width=ws, height=hs, bg=ag_colour)
 frame2 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 frame3 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 
@@ -291,7 +347,7 @@ load_frame1()
 is_running = False
 
 # # Display Full Screen
-root.attributes('-fullscreen', True)
+# root.attributes('-fullscreen', True)
 
 # run app
 root.mainloop()
