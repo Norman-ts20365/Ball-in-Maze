@@ -15,6 +15,7 @@ from datetime import datetime
 from time import sleep
 import multiprocessing
 from multiprocessing import Process, Queue, Manager, Value
+from path import path_detection
 
 # Useful Packet Pre-declaration
 jog_Yplus = bytearray([2,7,119,3]) # 2,7,W,3
@@ -78,12 +79,13 @@ def ball_tracking(result,cnts):
             count=0
             x,y,w,h =cv2.boundingRect(c)
             cv2.rectangle(result,(x,y),(x+w,y+h),(255,255,0),2)
+            center2=(int((x+w/2)),int((y+h/2)))
             center=(int((x+w/2)/3),int((y+h/2)/3))
             xcor=int((x+w/2)/3)
             ycor=int((y+h/2)/3)
             #print(center)
                 #print("X: ", xcor, "Y: ", ycor)
-            cv2.circle(result, center, 5, (0, 0, 255), -1)
+            cv2.circle(result, center2, 5, (0, 0, 255), -1)
             centers.append(center)
             arrowcount=arrowcount+1
             minute=datetime.now().strftime("%M") # PROBLEM HERE - YOU HAD USED A KEYWORD MIN
@@ -102,22 +104,19 @@ def ball_tracking(result,cnts):
     return test_packet
     
 
+def path_finding():
+# Image processor initialisation
 
-def image_processor(record, x_tracking, y_tracking, times, queue):
-    # Image processor initialisation
-    xcor = 0
-    ycor = 0
-    count2=0
-    test_packet=[]
-    YellowLower=(100,50,50)
-    YellowUpper=(130,255,255) 
-    greenLower = (70,43,46)#(35, 43, 46)#(50, 43, 46)
-    greenUpper = (90,255,255)#(77, 255, 255)#(90, 255, 255)
+    pathtrigger=False
+    
+    YellowLower=(90,50,70)
+    YellowUpper=(128,255,255) 
+    greenLower = (35,43,46)#(35, 43, 46)#(50, 43, 46)
+    greenUpper = (77,255,255)#(77, 255, 255)#(90, 255, 255)
     count=0
-    vid = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+    vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
     # Image processor loop
     while True:
-        test_packet=[]
         ret,frame=vid.read()
         frame=cv2.resize(frame,(765,635))
         cv2.imshow("frame",frame)
@@ -130,16 +129,56 @@ def image_processor(record, x_tracking, y_tracking, times, queue):
         maskboard = cv2.morphologyEx(maskboard.copy(), cv2.MORPH_OPEN, kernel)
         maskboard2 =cv2.dilate(maskboard,kernel,iterations = 1)
         cnts2,hierarchy = cv2.findContours(maskboard2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        result=board_detection(cnts2,frame)
+        count=count+1
+        if count>20 and pathtrigger is not True:
+            pathtrigger=True
+            path=path_detection(result)
+            print(path)
+            return path
+          
 
+def image_processor(record, x_tracking, y_tracking, times, queue):
+    # Image processor initialisation
+
+    
+    count2=0
+    test_packet=[]
+    YellowLower=(90,50,70)
+    YellowUpper=(128,255,255) 
+    greenLower = (35,43,46)#(35, 43, 46)#(50, 43, 46)
+    greenUpper = (77,255,255)#(77, 255, 255)#(90, 255, 255)
+    count=0
+    vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+    
+    # Image processor loop
+    while True:
+        test_packet=[]
+        ret,frame=vid.read()
+        frame=cv2.resize(frame,(765,635))
+        cv2.imshow("frame",frame)
+        blurred = cv2.GaussianBlur(frame, (5, 5), 0)
+        hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)  
+        # construct a mask for the color green
+        maskboard=cv2.inRange(hsv,YellowLower,YellowUpper)
+        
+        kernel = np.ones((5,5),np.uint8)
+        maskboard = cv2.morphologyEx(maskboard.copy(), cv2.MORPH_OPEN, kernel)
+        maskboard2 =cv2.dilate(maskboard,kernel,iterations = 1)
+        cnts2,hierarchy = cv2.findContours(maskboard2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        
         result=board_detection(cnts2,frame)
 
         if result is not None:
-            
+         
             hsv2= cv2.cvtColor(result, cv2.COLOR_BGR2HSV)
             mask2 = cv2.inRange(hsv2, greenLower, greenUpper)
-            cv2.imshow("mask2",mask2)
-            cnts, hierarchy = cv2.findContours(mask2.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-            
+            kernel = np.ones((5,5),np.uint8)
+            maskball = cv2.morphologyEx(mask2.copy(), cv2.MORPH_OPEN, kernel)
+            maskball2 =cv2.dilate(maskball,kernel,iterations = 1)
+            cv2.imshow("mask2",maskball2)
+            cnts, hierarchy = cv2.findContours(maskball2.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
+        
             test_packet=ball_tracking(result,cnts)
            
             if (record.value == 1) and len(test_packet)>9: # used to log/ plot the response
@@ -218,6 +257,7 @@ def plot(x, y, t):
             plt.pause(0.0005)
 
 if __name__ == "__main__":
+    path_finding()
     print("Welcome to the training routine")
     print("This script utilised particle swarm optimisation (PSO) in order to optimise fuzzy logic parameters")
     print("Number of CPU cores available: ", multiprocessing.cpu_count())
@@ -257,13 +297,13 @@ if __name__ == "__main__":
         elif user == 'a':
             print("Jog x-")
             queue.put(jog_Xminus)
-
     # If the user selects to exit, handle termination of threads and stop the process
     mn.join() # waits for main to return 
     img.terminate()
     srl.terminate()
     pltter.terminate()
-    #plot(x, y, t)
+    plot(x, y, t)
+    cv2.waitKey(0)
     cv2.destroyAllWindows()
     sys.exit()
 
