@@ -28,7 +28,7 @@ def flatten_board(cnts2,frame):
         result = cv2.warpPerspective(frame, M, (765,635))
         return result
     else:
-        result=None
+        result = None
         return result
 
 
@@ -60,8 +60,5 @@ def board_detection():
         detected_board = flatten_board(cnts2,frame)
         counter += 1
 
-        if flag_count == True:
-            if counter>20:
-                return detected_board
-        elif flag_count == False:
+        if counter>20:
             return detected_board
