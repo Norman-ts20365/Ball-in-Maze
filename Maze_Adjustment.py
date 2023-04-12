@@ -13,10 +13,9 @@ def serial_read(command):
     ser.baudrate = 115200
     ser.port = 'COM4'
     ser.open()
-    while True:
-        ser.write(command)
-        if (ser.in_waiting > 0):
-            print(ser.read_until().decode("utf-8"), end = '')
+    ser.write(command)
+    if (ser.in_waiting > 0):
+        print(ser.read_until().decode("utf-8"), end = '')
 
 
 def user_command(command):
