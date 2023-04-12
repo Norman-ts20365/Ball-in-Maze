@@ -1,4 +1,4 @@
-import tkinter as tk
+import tkinter as tk, threading
 from PIL import Image, ImageTk
 import cv2
 import ctypes
@@ -10,6 +10,8 @@ from longest_line_detection import main
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import sys
+import imutils
 
 bg_colour = "#000000"
 ag_colour = "#122222"
@@ -42,7 +44,7 @@ def animation_plot(x_cor, y_cor):
         # fig, ax = plt.subplots()
         fig = plt.Figure()
         canvas = FigureCanvasTkAgg(fig, master=frame2)
-        canvas.get_tk_widget().grid(column=0,row=1)
+        canvas.get_tk_widget().grid(column=0,row=1,sticky=tk.N)
 
         ax = fig.add_subplot(111)
 
@@ -56,7 +58,7 @@ def animation_plot(x_cor, y_cor):
         ax.set_facecolor('black')
 
         # Create a line object
-        line, = ax.plot([], [], lw=2)
+        line, = ax.plot([], [], lw=4)
 
         # Define the initialization function
         def plt_init():
@@ -109,7 +111,8 @@ def load_frame1():
 
     tk.Label(
             frame1, 
-            text="Place any maze onto the solver, place the ball at the starting point and let us do the rest.",
+            # text="Place any maze onto the solver, place the ball at the starting point and let us do the rest.",
+            text=" ",
             bg=bg_colour,
             fg="white",
             font=("TkMenuFont", 14)
@@ -148,7 +151,7 @@ def load_frame2():
     frame2.rowconfigure(1,weight=1)
     frame2.rowconfigure(2,weight=1)
 
-    frame2.after(5000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
+    frame2.after(10000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
 
     tk.Label(
             frame2, 
@@ -156,7 +159,7 @@ def load_frame2():
             bg=bg_colour,
             fg="white",
             font=("TkHeadingFont", 40)
-            ).grid(row=0, column=0)  # should be able to adjust according to screen size
+            ).grid(row=0, column=0, pady=50)  # should be able to adjust according to screen size
     
     animation_plot(x_cor, y_cor)
     
@@ -171,8 +174,6 @@ def load_frame2():
     # frame2.after(5000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
 
 
-
-
 def load_frame3():
     # clear_widgets(frame1)
 
@@ -184,8 +185,7 @@ def load_frame3():
     global time_label
     time_label = tk.Label(frame3, text="00:00:00",bg=bg_colour,fg="white", font=("Helvetica", 48))
     time_label.grid(row=1, column=2, sticky=tk.N)
-
-#     update_time()
+    update_time()
 
     tk.Label(
             frame3, 
@@ -204,7 +204,7 @@ def load_frame3():
             cursor="hand2",
             activebackground="#badee2",
             activeforeground="black",
-        #     command=lambda:[load_frame2()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            command=lambda:[sys.exit(1)]    # Determine what the button would do (just paste the function in)
             ).grid(row=2, column=2) # should be able to adjust according to screen size
     
     tk.Button(
@@ -219,13 +219,52 @@ def load_frame3():
         #     command=lambda:[load_frame2()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
             ).grid(row=3, column=2) # should be able to adjust according to screen size
 
-    img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_hard.png')
-    im = Image.fromarray(img)
-    im=im.resize((950, 700))
-    imgtk = ImageTk.PhotoImage(image=im)
-    logo_widget = tk.Label(frame3, image=imgtk, bg=bg_colour)
-    logo_widget.image = imgtk
-    logo_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
+    # img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_hard.png')
+    # im = Image.fromarray(img)
+    # im=im.resize((950, 700)) 
+    # imgtk = ImageTk.PhotoImage(image=im)
+    # logo_widget = tk.Label(frame3, image=imgtk, bg=bg_colour)
+    # logo_widget.image = imgtk
+    # logo_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
+
+
+    vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
+    
+    label_widget = tk.Label(frame3)
+    label_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
+    def open_camera():
+        # Capture the video frame by frame
+        _, frame = vid.read()
+        frame = imutils.resize(frame, width=1000)
+    
+        # Convert image from one color space to other
+        opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    
+        # Capture the latest frame and transform to image
+        captured_image = Image.fromarray(opencv_image)
+
+        # captured_image=captured_image.resize((950, 700))
+    
+        # Convert captured image to photoimage
+        photo_image = ImageTk.PhotoImage(image=captured_image)
+    
+        # Displaying photoimage in the label
+        label_widget.photo_image = photo_image
+    
+        # Configure image in the label
+        label_widget.configure(image=photo_image)
+    
+        # Repeat the same process after every 10 seconds
+        label_widget.after(10, open_camera)
+
+    # open_camera()
+    thread = threading.Thread(target=open_camera)
+    # thread = threading.Thread(target=stream(my_label))
+    thread.daemon = 1
+    thread.start()
+    frame3.mainloop()
+
+
 
 
 # initiallise app -------------------------------------------------------------------------
@@ -247,13 +286,12 @@ for frame in (frame1, frame2,frame3):
 	# frame.grid(row=0, column=0, sticky="nesw")
         frame.pack()
 
-
 load_frame1()
 
 is_running = False
 
 # # Display Full Screen
-# root.attributes('-fullscreen', True)
+root.attributes('-fullscreen', True)
 
 # run app
 root.mainloop()
