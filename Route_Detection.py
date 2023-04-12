@@ -11,7 +11,7 @@ import matplotlib.animation as animation
 # from time import sleep
 # import csv
 
-hello = 2
+from Board_Detection import board_detection
 
 def find_target_contour_area(bin_image, template):
     """
@@ -293,11 +293,15 @@ def sort_route(start_pt,end_pt,all_pts):
 #         # plt.show()
 
 
-def main():
+def route_detection_main():
     global img_gray_default, img_gray, img_coloured, img_bin, target_route, route_contour, route_skeleton, route_coordinates, end_points, sorted_route_coordinates
     # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
-    path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image.png'
-    img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
+    # path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
+    # img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
+
+    detected_board = board_detection()
+    img_gray_default = cv2.imread(detected_board,0)  # "0" means read image in gray scale
+
     # cv2.imshow('Ori gray', img_gray)
     tem_path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\arrow3.png'
     tem = cv2.imread(tem_path, 0)
@@ -337,8 +341,8 @@ def main():
     # print("\n \n sorted route is: \n \n" , sorted_route_coordinates)
     sorted_route_coordinates_filtered = [sorted_route_coordinates[i] for i in range(len(sorted_route_coordinates)) if i%10 == 0]
     # print("\n \n filtered route is: \n \n" , sorted_route_coordinates_filtered)
-    x = [x[0] for x in sorted_route_coordinates_filtered]
-    y = [y[1] for y in sorted_route_coordinates_filtered]
+    # x = [x[0] for x in sorted_route_coordinates_filtered]
+    # y = [y[1] for y in sorted_route_coordinates_filtered]
     
 
     # cv2.waitKey(0)  # display window until any keypress
@@ -347,7 +351,7 @@ def main():
     return sorted_route_coordinates_filtered
 
 if __name__ == "__main__":
-    main()
+    route_detection_main()
 
 
 
