@@ -14,8 +14,9 @@ def serial_read(command):
     ser.port = 'COM4'
     ser.open()
     ser.write(command)
-    if (ser.in_waiting > 0):
-        print(ser.read_until().decode("utf-8"), end = '')
+    while True:
+        if (ser.in_waiting > 0):
+            print(ser.read_until().decode("utf-8"), end = '')
 
 
 def user_command(command):
@@ -31,3 +32,4 @@ def user_command(command):
     elif command == 'a':
         # print("Jog x-")
         serial_read(jog_Xminus)
+
