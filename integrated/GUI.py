@@ -15,6 +15,7 @@ import imutils
 
 from Route_Detection import route_detection_main
 from Maze_Adjustment import user_command
+from trial import trial
 
 
 
@@ -285,13 +286,14 @@ def load_frame3():
     # logo_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
 
 
-    vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
+#     vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
     
     label_widget = tk.Label(frame3)
     label_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
     def open_camera():
         # Capture the video frame by frame
-        _, frame = vid.read()
+        # _, frame = vid.read()
+        frame = trial()
         frame = imutils.resize(frame, width=1000)
     
         # Convert image from one color space to other
