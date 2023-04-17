@@ -5,6 +5,7 @@ from matplotlib import pyplot as plt
 from skimage.morphology import skeletonize_3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import pickle
 # import os
 # import imutils
 # import serial
@@ -176,8 +177,8 @@ def find_route_coordinates(skeleton_image):
     green = [0,255,0]
     Y, X = np.where(np.all(skeleton_image==green,axis=2))
     coordinates = np.column_stack((X,Y))
-    print(coordinates)
-    print("Total coordinates:" , len(coordinates))
+    # print(coordinates)
+    # print("Total coordinates:" , len(coordinates))
 
     return coordinates
 
@@ -214,7 +215,7 @@ def find_end_points(skeleton_image):
     for pt in end_points:
         pt[1],pt[0] = pt[0],pt[1] # invert so that format == [x,y]
         img_end_points = cv2.circle(img_end_points, (pt[0], pt[1]), 15, (0,0,255), -1)
-        print(pt)
+        # print(pt)
     # cv2.imshow('endpoint',img_end_points)
     print("\n The start and end points are:\n" , end_points)
 
@@ -296,14 +297,16 @@ def sort_route(start_pt,end_pt,all_pts):
 def route_detection_main():
     global img_gray_default, img_gray, img_coloured, img_bin, target_route, route_contour, route_skeleton, route_coordinates, end_points, sorted_route_coordinates
     # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
-    # path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
-    # img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
+    path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
+    img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
 
-    detected_board = board_detection()
-    img_gray_default = cv2.cvtColor(detected_board, cv2.COLOR_BGR2GRAY)
+    # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
+    # detected_board = board_detection()
+    # img_gray_default = cv2.cvtColor(detected_board,cv2.COLOR_GRAY2RGB)
+
 
     # cv2.imshow('Ori gray', img_gray)
-    tem_path = r'C:\Desktop\Desktop Summary\EEE\groupproject\arrow.png'
+    tem_path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\arrow3.png'
     tem = cv2.imread(tem_path, 0)
 
     # # Resize image
@@ -347,6 +350,9 @@ def route_detection_main():
 
     # cv2.waitKey(0)  # display window until any keypress
     # cv2.destroyAllWindows()
+
+    file = open("coordinates.txt","wb")
+    pickle.dump(sorted_route_coordinates_filtered, file)
 
     return sorted_route_coordinates_filtered
 
