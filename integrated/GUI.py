@@ -10,13 +10,11 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
-import serial
 import imutils
+import pickle
+from multiprocessing import Condition
 
-from Route_Detection import route_detection_main
 from Maze_Adjustment import user_command
-from trial import trial
-
 
 
 bg_colour = "#000000"
@@ -86,8 +84,6 @@ def animation_plot(x_cor, y_cor):
         frame2.mainloop()
         # Display the animation
         # plt.show()
-
-coordinates = route_detection_main()
 
 def load_frame1():
     frame1.grid_propagate(0)  # so that parent frame stays the same size and not following the things inside
@@ -175,7 +171,7 @@ def load_frame1():
             cursor="hand2",
             activebackground="#badee2",
             activeforeground="black",
-            command=lambda:[load_frame2()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            command=lambda:[call(["python", "Route_Detection.py"]), load_frame2()] #,)]    # Determine what the button would do (just paste the function in)
             ).grid(row=2, column=0,rowspan=1, columnspan=4, pady=100, sticky=tk.S) # should be able to adjust according to screen size
 
     # tk.Label(
@@ -187,15 +183,21 @@ def load_frame1():
     #         font=("TkMenuFont", 14)
     #         ).grid(row=2, column=0, sticky=tk.N)
 
+
 def load_frame2():
     # clear_widgets(frame1)
-
     # stack frame 2 above frame 1
     frame1.destroy()
     frame2.grid_propagate(0)
     frame2.tkraise()
-    x_cor = [x[0] for x in coordinates]
-    y_cor = [y[1] for y in coordinates]
+    
+    # read file to obtain the route coordinates for plotting 
+    file = open("coordinates.txt","rb")
+    route_coordinates = pickle.load(file)
+    file.close
+
+    x_cor = [x[0] for x in route_coordinates]
+    y_cor = [y[1] for y in route_coordinates]
 
 #     img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\bgimg.png')
 #     im = Image.fromarray(img)
@@ -209,7 +211,7 @@ def load_frame2():
     frame2.rowconfigure(1,weight=1)
     frame2.rowconfigure(2,weight=1)
 
-    frame2.after(10000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
+    frame2.after(3000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
 
     tk.Label(
             frame2, 
@@ -234,6 +236,10 @@ def load_frame2():
 
 def load_frame3():
     # clear_widgets(frame1)
+
+    # notify a waiting process
+    with condition:
+        condition.notify()
 
     # stack frame 2 above frame 1
     frame2.destroy()
@@ -286,14 +292,12 @@ def load_frame3():
     # logo_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
 
 
-#     vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
-    
+    vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
     label_widget = tk.Label(frame3)
     label_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
     def open_camera():
         # Capture the video frame by frame
-        # _, frame = vid.read()
-        frame = trial()
+        _, frame = vid.read()
         frame = imutils.resize(frame, width=1000)
     
         # Convert image from one color space to other
@@ -324,9 +328,7 @@ def load_frame3():
     frame3.mainloop()
 
 
-
-
-# initiallise app -------------------------------------------------------------------------
+#----------------------------------------------------------------
 root = tk.Tk()
 root.title("Ball In Maze Solver")
 ws = root.winfo_screenwidth() # width of the screen
@@ -335,25 +337,35 @@ root.geometry('{}x{}'.format(ws, hs))
 # root.columnconfigure(0,weight=1)
 # root.rowconfigure(0,weight=1)
 
-print(ws,hs)
+# print(ws,hs)
 # create a frame widgets
 frame1 = tk.Frame(root, width=ws, height=hs, bg=ag_colour)
 frame2 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 frame3 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 
-for frame in (frame1, frame2,frame3):
-	# frame.grid(row=0, column=0, sticky="nesw")
-        frame.pack()
-
-load_frame1()
-
 is_running = False
 
-# # Display Full Screen
-# root.attributes('-fullscreen', True)
 
-# run app
-root.mainloop()
+def gui_main(condition_in_func):
+     global condition
+     condition = condition_in_func
+     for frame in (frame1, frame2,frame3):
+                # frame.grid(row=0, column=0, sticky="nesw")
+                frame.pack()
+
+     load_frame1()
+
+     # # Display Full Screen
+     # root.attributes('-fullscreen', True)
+     # run app
+     root.mainloop()
+
+# initiallise app -------------------------------------------------------------------------
+# if __name__ == "__main__":
+#         gui_main()
+
+
+
 
 #-------------------------------------------------------------------------------------
 # import tkinter as tk
