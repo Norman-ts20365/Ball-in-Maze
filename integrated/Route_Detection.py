@@ -6,6 +6,7 @@ from skimage.morphology import skeletonize_3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pickle
+# from multiprocessing import Queue
 # import os
 # import imutils
 # import serial
@@ -294,8 +295,9 @@ def sort_route(start_pt,end_pt,all_pts):
 #         # plt.show()
 
 
-def route_detection_main():
+def route_detection_main(queue):
     global img_gray_default, img_gray, img_coloured, img_bin, target_route, route_contour, route_skeleton, route_coordinates, end_points, sorted_route_coordinates
+    
     # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
     path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
     img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
@@ -346,18 +348,30 @@ def route_detection_main():
     # print("\n \n filtered route is: \n \n" , sorted_route_coordinates_filtered)
     # x = [x[0] for x in sorted_route_coordinates_filtered]
     # y = [y[1] for y in sorted_route_coordinates_filtered]
-    
 
     # cv2.waitKey(0)  # display window until any keypress
     # cv2.destroyAllWindows()
 
+    # wrting the route coordinates into a file
     file = open("coordinates.txt","wb")
     pickle.dump(sorted_route_coordinates_filtered, file)
 
-    return sorted_route_coordinates_filtered
+    # setting up a route packet for serial communication
+    payload_length = len(sorted_route_coordinates_filtered)
+    route_packet = [2,5,(payload_length & 0xff),(payload_length >> 8)&0xff]
+    for i in range(payload_length):
+        for j in range(2):
+            route_packet.append(int(sorted_route_coordinates_filtered[i][j]/3))
+    route_packet.append(3)
+    route_packet = bytearray(route_packet)
 
-if __name__ == "__main__":
-    route_detection_main()
+    # setting up multiprocessing
+    queue.put(route_packet)
+
+    return
+
+# if __name__ == "__main__":
+#     route_detection_main()
 
 
 
