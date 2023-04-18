@@ -12,9 +12,10 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 import imutils
 import pickle
-from multiprocessing import Condition
+# from multiprocessing import Condition
 
 from Maze_Adjustment import user_command
+from Route_Detection import route_detection_main
 
 
 bg_colour = "#000000"
@@ -171,7 +172,7 @@ def load_frame1():
             cursor="hand2",
             activebackground="#badee2",
             activeforeground="black",
-            command=lambda:[call(["python", "Route_Detection.py"]), load_frame2()] #,)]    # Determine what the button would do (just paste the function in)
+            command=lambda:[route_detection_main(queue), load_frame2()] #,)]    # Determine what the button would do (just paste the function in)
             ).grid(row=2, column=0,rowspan=1, columnspan=4, pady=100, sticky=tk.S) # should be able to adjust according to screen size
 
     # tk.Label(
@@ -346,9 +347,10 @@ frame3 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 is_running = False
 
 
-def gui_main(condition_in_func):
-     global condition
-     condition = condition_in_func
+def gui_main(local_condition,local_queue):
+     global condition, queue
+     condition = local_condition
+     queue = local_queue
      for frame in (frame1, frame2,frame3):
                 # frame.grid(row=0, column=0, sticky="nesw")
                 frame.pack()
