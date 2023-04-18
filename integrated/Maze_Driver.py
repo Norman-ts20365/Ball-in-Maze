@@ -7,7 +7,6 @@ from datetime import datetime
 from time import sleep
 import multiprocessing
 from multiprocessing import Process, Queue, Manager, Value
-from Route_Detection import route_detection_main
 
 from Board_Detection import flatten_board
 
@@ -16,6 +15,7 @@ jog_Yplus = bytearray([2,7,119,3]) # 2,7,W,3
 jog_Yminus = bytearray([2,7,115,3])
 jog_Xplus = bytearray([2,7,100,3]) # STX, JOG_TYPE, D, ETX
 jog_Xminus = bytearray([2,7,97,3])
+
 start = bytearray([2,6,10,3])
 stop = bytearray([2,6,11,3])
 home = bytearray([2,6,12,3])
@@ -24,43 +24,13 @@ fail = bytearray([2,6,14,3])
 
 def main(x,y,t,record,queue):   
     # Responsible for the operation of each learning runtime sequence
-    # Must use the training class to generate the correct parameter sets 
+    # Must use the training class to generate the correct parameter sets
     # Must run the timer and send the record trigger and the stop to the ESP32
     # Must evaluate the fitness function and handle saving results to csv
     sleep(5) # need to stop record triggering before it gets to see green
     record.value = 1 # trigger this at the same time as the start packet
     while True:
         return
-
-# def board_detection(cnts2,frame):
-#     new_contours=[] 
-#     for contour in cnts2:
-#         approx=cv2.approxPolyDP(contour, 0.01 * cv2.arcLength(contour, True), True)
-#         area=cv2.contourArea(contour)
-#         if area >=50 :
-#             new_contours.append(contour)
-
-#     new_contours = sorted(new_contours, key=lambda x: cv2.contourArea(x), reverse=True)
-#     if len(new_contours) >= 4:
-#         new_contours = new_contours[:4]
-#         sorted_contours = []
-
-#         for i in range(4):
-#             x, y, w, h = cv2.boundingRect(new_contours[i])
-#             sorted_contours.append((x + w / 2, y + h / 2))
-#             sorted_contours = sorted(sorted_contours, key=lambda x: x[1])
-#         if sorted_contours[0][0] > sorted_contours[1][0]:
-#             sorted_contours[0], sorted_contours[1] = sorted_contours[1], sorted_contours[0]
-#         if sorted_contours[2][0] < sorted_contours[3][0]:
-#             sorted_contours[2], sorted_contours[3] = sorted_contours[3], sorted_contours[2]
-#         src_pts = np.array(sorted_contours, np.float32)
-#         dst_pts = np.array([[0, 0], [765, 0], [765, 635], [0, 635]], np.float32)
-#         M = cv2.getPerspectiveTransform(src_pts, dst_pts)
-#         result = cv2.warpPerspective(frame, M, (765,635))
-#         return result
-#     else:
-#         result=None
-#         return result
     
 def ball_tracking(result,cnts):   
     count=0
@@ -96,40 +66,6 @@ def ball_tracking(result,cnts):
             test_packet=[]          
     cv2.imshow('Image ', result)   
     return test_packet
-    
-
-# def path_finding():
-# # Image processor initialisation
-
-#     pathtrigger=False
-    
-#     YellowLower=(90,50,70)
-#     YellowUpper=(128,255,255) 
-#     greenLower = (35,43,46)#(35, 43, 46)#(50, 43, 46)
-#     greenUpper = (77,255,255)#(77, 255, 255)#(90, 255, 255)
-#     count=0
-#     vid = cv2.VideoCapture(0,cv2.CAP_DSHOW)
-#     # Image processor loop
-#     while True:
-#         ret,frame=vid.read()
-#         frame=cv2.resize(frame,(765,635))
-#         cv2.imshow("frame",frame)
-#         blurred = cv2.GaussianBlur(frame, (5, 5), 0)
-#         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)  
-#         # construct a mask for the color green
-#         maskboard=cv2.inRange(hsv,YellowLower,YellowUpper)
-#         mask = cv2.inRange(hsv, greenLower, greenUpper)
-#         kernel = np.ones((5,5),np.uint8)
-#         maskboard = cv2.morphologyEx(maskboard.copy(), cv2.MORPH_OPEN, kernel)
-#         maskboard2 =cv2.dilate(maskboard,kernel,iterations = 1)
-#         cnts2,hierarchy = cv2.findContours(maskboard2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-#         result=board_detection(cnts2,frame)
-#         count=count+1
-#         if count>20 and pathtrigger is not True:
-#             pathtrigger=True
-#             path=route_detection_main(result)
-#             print(path)
-#             return path
           
 
 def image_processor(record, x_tracking, y_tracking, times, queue):
@@ -223,7 +159,7 @@ def serial_read(queue):
             ser.write(cmd)
             #print("Sent: ", cmd)
         if (ser.in_waiting > 0):
-            print(ser.read_until().decode("utf-8"), end = '') 
+            print(ser.read_until().decode("utf-8"), end = '')
     
     
 def plot(x, y, t):
@@ -286,6 +222,7 @@ if __name__ == "__main__":
     y = manager.list()
     t = manager.list()
     record = Value('i',0)
+
     mn = Process(target=main, args=(x,y,t,record,queue,))
     srl = Process(target=serial_read, args=(queue,))
     img = Process(target=image_processor, args=(record,x,y,t,queue,))
