@@ -6,7 +6,7 @@ from skimage.morphology import skeletonize_3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pickle
-# from multiprocessing import Queue
+from multiprocessing import Queue
 # import os
 # import imutils
 # import serial
@@ -14,6 +14,7 @@ import pickle
 # import csv
 
 from Board_Detection import board_detection
+from Serial import serial_read
 
 def find_target_contour_area(bin_image, template):
     """
@@ -295,20 +296,19 @@ def sort_route(start_pt,end_pt,all_pts):
 #         # plt.show()
 
 
-def route_detection_main(queue):
+def route_detection_main():
     global img_gray_default, img_gray, img_coloured, img_bin, target_route, route_contour, route_skeleton, route_coordinates, end_points, sorted_route_coordinates
-    
     # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
-    path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
-    img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
+    # path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_medium.png'
+    # img_gray_default = cv2.imread(path,0)  # "0" means read image in gray scale
 
     # Read Image-----------------------------------------------------------------------------------------------------------------------------------------------
-    # detected_board = board_detection()
-    # img_gray_default = cv2.cvtColor(detected_board,cv2.COLOR_GRAY2RGB)
+    detected_board = board_detection()
+    img_gray_default = cv2.cvtColor(detected_board,cv2.COLOR_BGR2GRAY)
 
 
     # cv2.imshow('Ori gray', img_gray)
-    tem_path = r'C:\Users\Asus\Desktop\CodeGP3\path_detection\arrow3.png'
+    tem_path = r'C:\Desktop\Desktop Summary\EEE\groupproject\arrow.png'
     tem = cv2.imread(tem_path, 0)
 
     # # Resize image
@@ -344,7 +344,7 @@ def route_detection_main(queue):
     sorted_route_coordinates = sort_route(end_points[0], end_points[1], route_coordinates)
 
     # print("\n \n sorted route is: \n \n" , sorted_route_coordinates)
-    sorted_route_coordinates_filtered = [sorted_route_coordinates[i] for i in range(len(sorted_route_coordinates)) if i%10 == 0]
+    sorted_route_coordinates_filtered = [sorted_route_coordinates[i] for i in range(len(sorted_route_coordinates)) if i%15 == 0]
     # print("\n \n filtered route is: \n \n" , sorted_route_coordinates_filtered)
     # x = [x[0] for x in sorted_route_coordinates_filtered]
     # y = [y[1] for y in sorted_route_coordinates_filtered]
@@ -366,84 +366,11 @@ def route_detection_main(queue):
     route_packet = bytearray(route_packet)
 
     # setting up multiprocessing
-    queue.put(route_packet)
+    # queue.put(route_packet)
+    serial_read(route_packet)
+    print('I have put route packet.')
 
     return
 
 # if __name__ == "__main__":
 #     route_detection_main()
-
-
-
-
-# # Serial Testing -----------------------------------------------------------------------------------------
-# coordinates_driver = sorted_route_coordinates[300:310]
-# print("\n \nSerial connection demo: \nExample coordinates to be sent to driver are: \n" , coordinates_driver)
-
-# packet = [item for sublist in coordinates_driver for item in sublist] # Flatten the list
-
-# # Split length into two separate bytes
-# top_byte = (len(coordinates_driver) >> 8) & 0xff   #length is in pair
-# bottom_byte = len(coordinates_driver) & 0xff
-
-# print("Flat list looks like: \n" , packet)
-# packet.insert(0,2)           # STX
-# packet.insert(1,5)           # Type
-# packet.insert(2,bottom_byte) # Length
-# packet.insert(3,top_byte)    # Length
-# packet.append(3)             # Coordinates
-# print("Final packet now looks like:\n" , packet)
-# packet_byte = bytearray(packet)
-# print("Finally, in bytes, they are:\n", packet_byte)
-
-# -------------------------------------------------------------------------------------------------------------
-# ser = serial.Serial()
-
-# ser.baudrate = 115200
-
-# ser.port = 'COM9'
-
-# ser.open()
-
-
-# ser.write(packet_byte)
-# sleep(1)
-# while (ser.in_waiting > 0):
-#     print(ser.read_until().decode("utf-8"), end = '') # Reads until /n character until timeout
-# print("")
-
-# # for i in range(4):  
-# #     ser.write(test_packets[i])
-# #     sleep(1)
-# #     while (ser.in_waiting > 0):
-# #         print(ser.read_until().decode("utf-8"), end = '') # Reads until /n character until timeout
-# #     print("")
-     
-# sys.exit() 
-
-#-----------------------------------------------------------------------------------------------
-# file = open('route.txt','w')
-# file = open('route.txt','w')
-# for item in sorted_route_coordinates:
-#     str(item)
-#     file.write(item +"\n")
-# file.close()
-
-
-# with open("route.csv", "w",encoding='UTF8') as f:
-#     wr = csv.writer(f)
-#     wr.writerows(sorted_route_coordinates)
-# f.close
-
-# myFile = open('route.csv', 'r')
-# print("The content of the csv file is:")
-# print(myFile.read())
-# myFile.close()
-
-
-# with open('readme.txt', 'w') as f:
-#     f.write('Create a new text file!')
-
-
-# plt.imshow(route_skeleton)
-# plt.show()
