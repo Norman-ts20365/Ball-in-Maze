@@ -10,9 +10,6 @@ path =  r'C:\Desktop\Desktop Summary\EEE\Ballinmaze\maze2.jpg'
 maze = cv2.imread(path)
 original = maze.copy() #save a copy of the original raw image we get to make a masked image afterwards as the image can be changed after threshold()
 mazegray = cv2.cvtColor(maze, cv2.COLOR_BGR2GRAY)#Turn the image into grayscale
-
-#edged= cv2.Canny(mazegray,30,200)
-
 ret,thresh = cv2.threshold(mazegray, 127, 255, 0) #Turn the image into binary scale
 contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)# Find contours, RETR_TREE means that every contour in the image
 print("Number of Contours found = " + str(len(contours)))
