@@ -12,6 +12,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import sys
 import imutils
 import pickle
+from time import sleep
 # from multiprocessing import Condition
 
 from Maze_Adjustment import user_command
@@ -20,8 +21,11 @@ from Route_Detection import route_detection_main
 
 bg_colour = "#000000"
 ag_colour = "#122222"
+tiel = "#28393a"
+gray = "#808080"
+red = "#FF2800"
 
-def start():
+def start_timer():
     global is_running
     global start_time
     if not is_running:
@@ -30,7 +34,7 @@ def start():
         # update_time()
  
 # Stop the stopwatch
-def stop():
+def stop_timer():
     global is_running
     is_running = False
  
@@ -81,7 +85,7 @@ def animation_plot(x_cor, y_cor):
             return line,
 
         # Create the animation object
-        ani = animation.FuncAnimation(fig, update, interval=0, frames=len(x_cor), init_func=plt_init, blit=True, repeat=False)
+        ani = animation.FuncAnimation(fig, update, interval=10, frames=len(x_cor), init_func=plt_init, blit=True, repeat=False)
         frame2.mainloop()
         # Display the animation
         # plt.show()
@@ -112,14 +116,14 @@ def load_frame1():
             text="BALL IN MAZE SOLVER",
             bg=bg_colour,
             fg="white",
-            font=("TkMenuFont", 45)
+            font=("TkMenuFont", 70)
             ).grid(row=0, column=0, rowspan=1, columnspan=4, pady=165)
 
     tk.Button(
             frame1,
             text="X+",
-            font=("TkHeadingFont", 30),
-            bg="#28393a",
+            font=("TkHeadingFont", 40),
+            bg=tiel,
             fg="white",
             cursor="hand2",
             activebackground="#badee2",
@@ -130,8 +134,8 @@ def load_frame1():
     tk.Button(
             frame1,
             text="X-",
-            font=("TkHeadingFont", 30),
-            bg="#28393a",
+            font=("TkHeadingFont", 40),
+            bg=tiel,
             fg="white",
             cursor="hand2",
             activebackground="#badee2",
@@ -142,7 +146,7 @@ def load_frame1():
     tk.Button(
             frame1,
             text="Y+",
-            font=("TkHeadingFont", 30),
+            font=("TkHeadingFont", 40),
             bg="#28393a",
             fg="white",
             cursor="hand2",
@@ -154,7 +158,7 @@ def load_frame1():
     tk.Button(
             frame1,
             text="Y-",
-            font=("TkHeadingFont", 30),
+            font=("TkHeadingFont", 40),
             bg="#28393a",
             fg="white",
             cursor="hand2",
@@ -166,13 +170,13 @@ def load_frame1():
     tk.Button(
             frame1,
             text="NEXT",
-            font=("TkHeadingFont", 30),
+            font=("TkHeadingFont", 40),
             bg="#28393a",
             fg="white",
             cursor="hand2",
             activebackground="#badee2",
             activeforeground="black",
-            command=lambda:[route_detection_main(queue), load_frame2()] #,)]    # Determine what the button would do (just paste the function in)
+            command=lambda:[route_detection_main(), load_frame2()] #,)]    # Determine what the button would do (just paste the function in)
             ).grid(row=2, column=0,rowspan=1, columnspan=4, pady=100, sticky=tk.S) # should be able to adjust according to screen size
 
     # tk.Label(
@@ -209,20 +213,34 @@ def load_frame2():
 
     frame2.columnconfigure(0,weight=1)  # weight = 0 means remain, 1 onwards means expand following the frame
 #     frame2.rowconfigure(0,weight=1)
-    frame2.rowconfigure(1,weight=1)
-    frame2.rowconfigure(2,weight=1)
+    # frame2.rowconfigure(1,weight=1)
+    # frame2.rowconfigure(2,weight=1)
 
-    frame2.after(3000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
+    # frame2.after(3000,lambda: [start_timer(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
 
     tk.Label(
             frame2, 
             text="Route Detected",
             bg=bg_colour,
             fg="white",
-            font=("TkHeadingFont", 40)
+            font=("TkMenuFont", 60)
             ).grid(row=0, column=0, pady=50)  # should be able to adjust according to screen size
     
+    tk.Button(
+            frame2,
+            text="START",
+            font=("TkHeadingFont", 30),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[load_frame3()]    # Determine what the button would do (just paste the function in)
+            ).grid(row=2, column=0,pady=80) # should be able to adjust according to screen size
+
+
     animation_plot(x_cor, y_cor)
+    # frame2.after(5000,lambda: [frame2.quit()]) # Transition to next frame after x milliseconds, function will run in order
     
     # img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_hard.png')
     # im = Image.fromarray(img)
@@ -231,8 +249,6 @@ def load_frame2():
     # logo_widget = tk.Label(frame2, image=imgtk, bg=bg_colour)
     # logo_widget.image = imgtk
     # logo_widget.grid(row=2,column=0)
-
-    # frame2.after(5000,lambda: [start(),load_frame3()]) # Transition to next frame after x milliseconds, function will run in order
 
 
 def load_frame3():
@@ -247,19 +263,41 @@ def load_frame3():
     frame3.grid_propagate(0)
     frame3.tkraise()
     
+    sleep(3)
+    start_timer()
+
     global time_label
     time_label = tk.Label(frame3, text="00:00:00",bg=bg_colour,fg="white", font=("Helvetica", 48))
-    time_label.grid(row=1, column=2, sticky=tk.N)
+    time_label.grid(row=1, column=0, columnspan=2, sticky=tk.N)
     update_time()
+
+
+    frame3.columnconfigure(0,weight=1)
+    frame3.columnconfigure(1,weight=1)
+    # frame3.columnconfigure(2,weight=1)
+    # frame3.rowconfigure(0,weight=1)
+
 
     tk.Label(
             frame3, 
             text="Solving Maze",
             bg=bg_colour,
             fg="white",
-            font=("TkMenuFont", 40)
-            ).grid(row=0, column=1, pady=20, sticky=tk.NSEW)
+            font=("TkMenuFont", 60)
+            ).grid(row=0, column=0, columnspan=2, pady=20)
 
+    tk.Button(
+            frame3,
+            text="QUIT",
+            font=("TkHeadingFont", 20),
+            bg="#28393a",
+            fg="white",
+            cursor="hand2",
+            activebackground="#badee2",
+            activeforeground="black",
+            command=lambda:[sys.exit(1)]    # Determine what the button would do (just paste the function in)
+            ).grid(row=2, column=0) # should be able to adjust according to screen size
+    
     tk.Button(
             frame3,
             text="STOP",
@@ -269,20 +307,8 @@ def load_frame3():
             cursor="hand2",
             activebackground="#badee2",
             activeforeground="black",
-            command=lambda:[sys.exit(1)]    # Determine what the button would do (just paste the function in)
-            ).grid(row=2, column=2) # should be able to adjust according to screen size
-    
-    tk.Button(
-            frame3,
-            text="RESET",
-            font=("TkHeadingFont", 20),
-            bg="#28393a",
-            fg="white",
-            cursor="hand2",
-            activebackground="#badee2",
-            activeforeground="black",
-        #     command=lambda:[load_frame2()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
-            ).grid(row=3, column=2) # should be able to adjust according to screen size
+            command=lambda:[stop_timer()] #,call(["python", "longest_line_detection.py"])]    # Determine what the button would do (just paste the function in)
+            ).grid(row=2, column=1) # should be able to adjust according to screen size
 
     # img = cv2.imread(r'C:\Users\Asus\Desktop\CodeGP3\path_detection\maze_image_hard.png')
     # im = Image.fromarray(img)
@@ -293,40 +319,40 @@ def load_frame3():
     # logo_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
 
 
-    vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
-    label_widget = tk.Label(frame3)
-    label_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
-    def open_camera():
-        # Capture the video frame by frame
-        _, frame = vid.read()
-        frame = imutils.resize(frame, width=1000)
+    # vid = cv2.VideoCapture(r"C:\Users\Asus\Documents\Zoom\2022-11-04 23.45.05 Norman's Zoom Meeting\norman.mp4")
+    # label_widget = tk.Label(frame3)
+    # label_widget.grid(row=1,column=0,rowspan=3, columnspan=2, padx=100)
+    # def open_camera():
+    #     # Capture the video frame by frame
+    #     _, frame = vid.read()
+    #     frame = imutils.resize(frame, width=1000)
     
-        # Convert image from one color space to other
-        opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
+    #     # Convert image from one color space to other
+    #     opencv_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGBA)
     
-        # Capture the latest frame and transform to image
-        captured_image = Image.fromarray(opencv_image)
+    #     # Capture the latest frame and transform to image
+    #     captured_image = Image.fromarray(opencv_image)
 
-        # captured_image=captured_image.resize((950, 700))
+    #     # captured_image=captured_image.resize((950, 700))
     
-        # Convert captured image to photoimage
-        photo_image = ImageTk.PhotoImage(image=captured_image)
+    #     # Convert captured image to photoimage
+    #     photo_image = ImageTk.PhotoImage(image=captured_image)
     
-        # Displaying photoimage in the label
-        label_widget.photo_image = photo_image
+    #     # Displaying photoimage in the label
+    #     label_widget.photo_image = photo_image
     
-        # Configure image in the label
-        label_widget.configure(image=photo_image)
+    #     # Configure image in the label
+    #     label_widget.configure(image=photo_image)
     
-        # Repeat the same process after every 10 seconds
-        label_widget.after(10, open_camera)
+    #     # Repeat the same process after every 10 seconds
+    #     label_widget.after(10, open_camera)
 
-    # open_camera()
-    thread = threading.Thread(target=open_camera)
-    # thread = threading.Thread(target=stream(my_label))
-    thread.daemon = 1
-    thread.start()
-    frame3.mainloop()
+    # # open_camera()
+    # thread = threading.Thread(target=open_camera)
+    # # thread = threading.Thread(target=stream(my_label))
+    # thread.daemon = 1
+    # thread.start()
+    # frame3.mainloop()
 
 
 #----------------------------------------------------------------
@@ -340,17 +366,16 @@ root.geometry('{}x{}'.format(ws, hs))
 
 # print(ws,hs)
 # create a frame widgets
-frame1 = tk.Frame(root, width=ws, height=hs, bg=ag_colour)
+frame1 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 frame2 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 frame3 = tk.Frame(root, width=ws, height=hs, bg=bg_colour)
 
 is_running = False
 
 
-def gui_main(local_condition,local_queue):
-     global condition, queue
+def gui_main(local_condition):
+     global condition
      condition = local_condition
-     queue = local_queue
      for frame in (frame1, frame2,frame3):
                 # frame.grid(row=0, column=0, sticky="nesw")
                 frame.pack()
@@ -358,7 +383,7 @@ def gui_main(local_condition,local_queue):
      load_frame1()
 
      # # Display Full Screen
-     # root.attributes('-fullscreen', True)
+    #  root.attributes('-fullscreen', True)
      # run app
      root.mainloop()
 
