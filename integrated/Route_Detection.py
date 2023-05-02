@@ -6,7 +6,7 @@ from skimage.morphology import skeletonize_3d
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import pickle
-from multiprocessing import Queue
+# from multiprocessing import Queue
 # import os
 # import imutils
 # import serial
@@ -20,7 +20,6 @@ def find_target_contour_area(bin_image, template):
     """
     This function uses template matching to detect and locate the arrow on the maze and
     find the pixel coordinates that lie within route of the maze.
-
     :param bin_image : a binary (black and white) image of the maze
     :param template  : an image of an arrow used for template matching
     :return          : a list of pixel coordinates
@@ -64,7 +63,6 @@ def find_route_contour(bin_image, target_range):
     This function finds the contours of the route and verify the result automatically.
     It starts by finding the nth largest contour, then (n-1)th contour if result is incorrect to
     finally obtain the correct contour of the route.
-
     :param bin_image : a binary (black and white) image
     :return          : pixel coordinates (type: list)
     """
@@ -344,7 +342,7 @@ def route_detection_main():
     sorted_route_coordinates = sort_route(end_points[0], end_points[1], route_coordinates)
 
     # print("\n \n sorted route is: \n \n" , sorted_route_coordinates)
-    sorted_route_coordinates_filtered = [sorted_route_coordinates[i] for i in range(len(sorted_route_coordinates)) if i%15 == 0]
+    sorted_route_coordinates_filtered = [sorted_route_coordinates[i] for i in range(len(sorted_route_coordinates)) if i%46 == 0]
     # print("\n \n filtered route is: \n \n" , sorted_route_coordinates_filtered)
     # x = [x[0] for x in sorted_route_coordinates_filtered]
     # y = [y[1] for y in sorted_route_coordinates_filtered]
