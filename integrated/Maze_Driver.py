@@ -34,7 +34,7 @@ def ball_tracking(board,cnts):
             cv2.circle(board, center2, 5, (0, 0, 255), -1)
             centers.append(center)
             arrowcount=arrowcount+1
-            minute=datetime.now().strftime("%M") # PROBLEM HERE - YOU HAD USED A KEYWORD MIN
+            minute=datetime.now().strftime("%M")
             minute=int(minute)
             sec=datetime.now().strftime("%S")
             sec=int(sec)
@@ -46,7 +46,7 @@ def ball_tracking(board,cnts):
         elif cv2.contourArea(c) < 25 :
             center="ball disappeared"
             test_packet=[]          
-    # cv2.imshow('Image ', result)   
+    # cv2.imshow('Image ', result)
     return test_packet
 
 def image_processor(queue):
@@ -54,8 +54,8 @@ def image_processor(queue):
     count2 = 0
     test_packet=[]
 
-    YellowLower=(90,50,70)
-    YellowUpper=(128,255,255) 
+    BlueLower=(90,50,70)
+    BlueUpper=(128,255,255) 
     GreenLower = (35,43,46)#(35, 43, 46)#(50, 43, 46)
     GreenUpper = (77,255,255)#(77, 255, 255)#(90, 255, 255)
 
@@ -70,14 +70,14 @@ def image_processor(queue):
         frame=cv2.resize(frame,(765,635))
         blurred = cv2.GaussianBlur(frame, (5, 5), 0)
         hsv = cv2.cvtColor(blurred, cv2.COLOR_BGR2HSV)
-
+        cv2.imshow("frame", frame)
         # construct a mask for the color green
-        maskboard=cv2.inRange(hsv,YellowLower,YellowUpper)
+        maskboard=cv2.inRange(hsv,BlueLower,BlueUpper)
         kernel = np.ones((5,5),np.uint8)
         maskboard = cv2.morphologyEx(maskboard.copy(), cv2.MORPH_OPEN, kernel)
         maskboard2 =cv2.dilate(maskboard,kernel,iterations = 1)
         cnts2,hierarchy = cv2.findContours(maskboard2.copy(),cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-        
+        cv2.imshow("blue mask", maskboard)
         # get image of the board
         detected_board = flatten_board(cnts2,frame)
 
@@ -88,7 +88,7 @@ def image_processor(queue):
             maskball = cv2.morphologyEx(mask2.copy(), cv2.MORPH_OPEN, kernel)
             maskball2 =cv2.dilate(maskball,kernel,iterations = 1)
             cnts, hierarchy = cv2.findContours(maskball2.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
-
+            
             # generate packet for serial communication
             test_packet = ball_tracking(detected_board,cnts)
 
@@ -106,14 +106,13 @@ def image_processor(queue):
             if len(test_packet)<9:
                 count2 += 1
             
-            if count2 > 1999: # fail condition
-                queue.put(fail)
+            if count2 > 100: # fail condition
+                queue.put(stop)
                 return
 
-def maze_driver_main(local_condition, local_queue):
-    global queue, condition
+def maze_driver_main(local_condition):
+    global condition
     condition = local_condition
-    queue = local_queue
     with condition:
         condition.wait()
     print("I am maze driver")
