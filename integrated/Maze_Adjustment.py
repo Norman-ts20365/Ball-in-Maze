@@ -1,3 +1,7 @@
+"""
+Code written by: Norman Cheen, Jiaxi Han, Oscar Dilley
+"""
+
 import serial
 
 # Packet Pre-declaration
@@ -33,4 +37,3 @@ def user_command(command):
     elif command == 'a':
         # print("Jog x-")
         serial_read(jog_Xminus)
-
