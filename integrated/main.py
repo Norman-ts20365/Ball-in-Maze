@@ -1,15 +1,25 @@
+"""
+Code written by: Norman Cheen, Oscar Dilley, JiaxiHan
+
+serial_read: by Oscar Dilley
+ball_tracking: by Jiaxi Han
+image processor: by Jiaxi Han
+multiprocessing in main: by Norman Cheen
+
+Compiled and integrated by: Norman Cheen
+ts20365@bristol.ac.uk
+"""
+
 from multiprocessing import Process, Queue, Manager, Value, Condition
 import pickle
 import serial
 from time import sleep
-
 import cv2
 import numpy as np
 from datetime import datetime
 
 from Board_Detection import flatten_board
-from GUI import gui_main, start_timer
-# from Route_Detection import route_detection_main
+from GUI import gui_main
 
 
 fail = bytearray([2,6,14,3])
@@ -107,7 +117,6 @@ def image_processor(queue):
             kernel = np.ones((5,5),np.uint8)
             maskball = cv2.morphologyEx(mask2.copy(), cv2.MORPH_OPEN, kernel)
             maskball2 =cv2.dilate(maskball,kernel,iterations = 1)
-            # cv2.imshow("mask2",maskball2)
             cnts, hierarchy = cv2.findContours(maskball2.copy(), cv2.RETR_EXTERNAL,cv2.CHAIN_APPROX_SIMPLE)
         
             test_packet=ball_tracking(detected_board,cnts)
@@ -136,7 +145,6 @@ def image_processor(queue):
 
 
 if __name__ == "__main__":
-    # manager = Manager()
 
     # multiprocessing-related functions
     queue = Queue()
@@ -144,30 +152,23 @@ if __name__ == "__main__":
 
     # declare processes
     process_gui = Process(target=gui_main, args=(condition,))
-    # process_Maze_Driver = Process(target=maze_driver_main, args=(condition,queue,))
     process_serial_read = Process(target=serial_read, args=(queue,))
     process_image_processor = Process(target=image_processor, args=(queue,))
 
     # run processes in parallel
     process_gui.start()
-    # process_Maze_Driver.start()
-    
-    queue.put(stop)
+    queue.put(stop) # clear any previous instructions
 
+    # wait here until notified
     with condition:
         condition.wait()
+
     process_serial_read.start()
     sleep(2)
     process_image_processor.start()
-    queue.put(start)
-    print("I have started timer")
-    # start_timer()
+    queue.put(start)    # start the maze solving process
 
     # wait for processes to return 
     process_gui.join()
     process_serial_read.terminate()
     process_image_processor.terminate()
-    # process_Maze_Driver.join()
-
-
-
